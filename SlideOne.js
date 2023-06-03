@@ -87,6 +87,8 @@ class SoData {
     currentIndex = 0;
     mouseX = -1;
     mouseY = -1;
+    cursorVisible = false;
+    cursorStyle = "#FF000099";
     windowRatio = 1;
     backgroundEffects = [];
     foregroundEffects = [];
@@ -235,7 +237,7 @@ class SlideOne {
         data.canvas = canvas;
         data.ctx = canvas.getContext("bitmaprenderer");
         data.effect = new PolkaDotsEffect();
-
+        data.canvas.addEventListener("mousemove", (event) => this.#onMouseMoveCallback(event, data, this.#drawCore));
         const funcDict = {};
 
         // funcs
@@ -285,20 +287,26 @@ class SlideOne {
         data.ratio = actualWidth / defaultWidth;
     };
 
-    registerMouseMoveEvent(){
+    showCursor() {
         const data = this.#slideOneData;
-        data.canvas.addEventListener("mousemove", (event) => this.#onMouseMoveCallback(event, data, this.#drawCore));
+        data.cursorVisible = true;
     }
 
-    registerMouseDownEvent() {
+    hideCursor() {
+        const data = this.#slideOneData;
+        data.cursorVisible = false;
+    }
+
+    enableMouseDownEvent() {
         const data = this.#slideOneData;
         data.canvas.addEventListener("mousedown", (event) => this.#onMouseDownCallback(event, data, this.#drawCore));
     }
 
-    registerKeyDownEvent(target) {
-        if (target !== undefined) {
-            target.addEventListener("keydown", (event) => this.#onKeyDown(event, this))
+    enableKeyDownEvent(target) {
+        if (target === undefined) {
+            target = window;
         }
+        target.addEventListener("keydown", (event) => this.#onKeyDown(event, this))
     }
 
     startTimer() {
@@ -443,9 +451,9 @@ class SlideOne {
             const effect = data.foregroundEffects[effectIndex];
             effect.draw(effectParameter);
         }
-        if (data.mouseX >= 0) {
+        if (data.cursorVisible) {
             offScreenCtx.beginPath();
-            offScreenCtx.fillStyle = "#FF000099";
+            offScreenCtx.fillStyle = data.cursorStyle;
             offScreenCtx.ellipse(data.mouseX, data.mouseY, 20, 20, 0, 0, 2 * Math.PI);
             offScreenCtx.fill();
         }
