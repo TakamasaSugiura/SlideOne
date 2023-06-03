@@ -1,3 +1,17 @@
+// Copyright 2023 Takamasa Sugiura
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+//     http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 class SlideOneSource {
     bg = "";
     slides = [];
@@ -201,69 +215,6 @@ class SoEffectParameter {
         this.#canvasRect = new SoRect(0, 0, soData.defaultWidth, soData.defaultHeight);
         this.#mousePosition = new SoPoint(soData.mouseX, soData.mouseY);
         this.#timerCount = soData.timerCount;
-    }
-}
-
-
-class PolkaDotParameter {
-    point = new SoPoint();
-    radius = 0;
-    color = new SoLightColor8();
-}
-
-class PolkaDotsEffect {
-    numberOfDots = 20;
-    dotParameters = [];
-    draw(data) {
-        const ctx = data.ctx;
-        const duration = data.timerCount % 40;
-        if (duration >= 20) {
-            return;
-        }
-        if (duration == 0) {
-            // initialize
-            this.dotParameters.length = 0;
-            for (let index = 0; index < this.numberOfDots; index++) {
-                const dotParameter = new PolkaDotParameter();
-                dotParameter.point.x = this.getRndInteger(0, data.canvasRect.w);
-                dotParameter.point.y = this.getRndInteger(0, data.canvasRect.h);
-                dotParameter.radius = this.getRndInteger(20, 100);
-                dotParameter.color.colorNum = this.getRndInteger(1, 7);
-                this.dotParameters.push(dotParameter);
-            }
-        }
-        else {
-            for (let index = 0; index < this.dotParameters.length; index++) {
-                const dotParam = this.dotParameters[index];
-                const alpha = (10 - Math.abs(duration - 10)) / 10; 
-                let radgrad = ctx.createRadialGradient(dotParam.point.x, dotParam.point.y, 0, dotParam.point.x, dotParam.point.y, dotParam.radius);
-                radgrad.addColorStop(0, 'rgba(' + dotParam.color.rgbColorElementString + ',' + (alpha * 0.5) + ')');
-                radgrad.addColorStop(0.8, 'rgba(' + dotParam.color.rgbColorElementString + ',' + (alpha * 0.4) + ')');
-                radgrad.addColorStop(1, 'rgba(' + dotParam.color.rgbColorElementString + ',0)');
-                ctx.beginPath();
-                ctx.fillStyle = radgrad;
-                ctx.ellipse(dotParam.point.x, dotParam.point.y, dotParam.radius, dotParam.radius, 0, 0, 2 * Math.PI);
-                ctx.fill();
-            }
-        }
-    }
-    getRndInteger(min, max) {
-        return Math.floor(Math.random() * (max - min) ) + min;
-    }
-}
-
-class ClockEffect {
-    draw(data) {
-        const ctx = data.ctx;
-        const today = new Date();
-        const secondSource = "00" + today.getSeconds();
-        const minuteSource = "00" + today.getMinutes();
-        const time = today.getHours() + ":" + minuteSource.substring(minuteSource.length - 2, minuteSource.length) + ":" + secondSource.substring(secondSource.length - 2, secondSource.length);
-        ctx.font = "48px sans"
-        ctx.fillStyle = "white";
-        ctx.textBaseline = "bottom";
-        ctx.textAlign = "right";
-        ctx.fillText(time, data.canvasRect.w - 10, data.canvasRect.h - 10);
     }
 }
 
