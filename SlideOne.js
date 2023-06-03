@@ -113,6 +113,7 @@ class SoTextLayer {
     style = ""; // color
     align = "";
     baseline = "";
+    size = 0;
     x = 0;
     y = 0;
 }
@@ -389,6 +390,7 @@ class SlideOne {
                             const textLayerSource = new SoTextLayerSource(layerSource);
                             const layer = new SoTextLayer();
                             layer.font = textLayerSource.size + "px " + textLayerSource.font;
+                            layer.size = textLayerSource.size;
                             layer.style = textLayerSource.color;
                             layer.text = textLayerSource.text;
                             layer.align = textLayerSource.align;
@@ -444,7 +446,12 @@ class SlideOne {
                 offScreenCtx.fillStyle = layer.style;
                 offScreenCtx.textBaseline = layer.baseline;
                 offScreenCtx.textAlign = layer.align;
-                offScreenCtx.fillText(layer.text, layer.x, layer.y);
+                let textY = layer.y;
+                let multiLine = layer.text.split("\n");
+                for (let lineCount = 0; lineCount < multiLine.length; lineCount ++) {
+                    offScreenCtx.fillText(multiLine[lineCount], layer.x, textY);
+                    textY += layer.size;
+                }
             }
         }
         for (let effectIndex = 0; effectIndex < data.foregroundEffects.length; effectIndex++) {
@@ -459,8 +466,6 @@ class SlideOne {
         }
         canvasCtx.transferFromImageBitmap(offScreenCanvas.transferToImageBitmap());
     }
-
-
 
     #calcActualSize(windowWidth, windowHeight, defaultWidth, defaultHeight) {
         const canvasRatio = defaultHeight / defaultWidth;
