@@ -220,6 +220,22 @@ class SoEffectParameter {
         this.#timerCount = soData.timerCount;
     }
 }
+class SoDirection {
+    name = "";
+    static TopLeft = new SoDirection("TopLeft");
+    static Top = new SoDirection("Top");
+    static TopRight = new SoDirection("TopRight");
+    static Left = new SoDirection("Left");
+    static Center = new SoDirection("Center");
+    static Right = new SoDirection("Right");
+    static BottomLeft = new SoDirection("BottomLeft");
+    static Bottom = new SoDirection("Bottom");
+    static BottomRight = new SoDirection("BottomRight");
+
+    constructor(name) {
+        this.name = name;
+    }
+}
 
 class SlideOne {
     #slideOneData = new SoData();
