@@ -89,6 +89,10 @@ class SoData {
     mouseY = -1;
     cursorVisible = false;
     cursorStyle = "#FF000099";
+    autoSlide = false;
+    autoSlideInterval = 50;
+    autoSlideCounter = 0;
+    loopSlide = false;
     windowRatio = 1;
     backgroundEffects = [];
     foregroundEffects = [];
@@ -281,6 +285,10 @@ class SlideOne {
             data.currentIndex++;
             this.draw();
         }
+        else if (data.loopSlide) {
+            data.currentIndex = 0;
+            this.draw();
+        }
     }
 
     drawPrev() {
@@ -326,12 +334,45 @@ class SlideOne {
         target.addEventListener("keydown", (event) => this.#onKeyDown(event, this))
     }
 
+    enableLoopSlide() {
+        const data = this.#slideOneData;
+        data.loopSlide = true;
+    }
+
+    enableAutoSlide() {
+        const data = this.#slideOneData;
+        data.autoSlide = true;
+    }
+
+    get autoSlideInterval () {
+        return this.#slideOneData.autoSlideInterval;
+    }
+
+    set autoSlideInterval (seconds) {
+        this.#slideOneData.autoSlideInterval = seconds * 10;
+    }
+
     startTimer() {
         setInterval(() => {
             const data = this.#slideOneData;
             data.timerCount ++;
             if (data.timerCount >= 10000) {
                 data.timerCount = 0;
+            }
+            if (data.autoSlide) {
+                data.autoSlideCounter ++;
+                if (data.autoSlideCounter >= data.autoSlideInterval) {
+                    if (data.currentIndex < data.slides.length - 1) {
+                        data.currentIndex++;
+                        this.#drawCore(data);
+                    }
+                    else if (data.loopSlide) {
+                        data.currentIndex = 0;
+                        this.#drawCore(data);
+                    }
+                    data.autoSlideCounter = 0;
+                    return;
+                }
             }
             this.#drawCore(data);
         }, 100);

@@ -33,8 +33,11 @@
                 _slide.showCursor();
                 _slide.enableMouseDownEvent();
                 _slide.enableKeyDownEvent();
+                _slide.enableLoopSlide();
+                _slide.enableAutoSlide();
+                _slide.autoSlideInterval = 3;
                 _slide.addBackgroundEffect(new PolkaDotsEffect());
-                _slide.addForegroundEffect(new ClockEffect());
+                _slide.addForegroundEffect(new ClockEffect("TopRight"));
                 _slide.enableFullWindowMode();
                 _slide.startTimer();
             }
