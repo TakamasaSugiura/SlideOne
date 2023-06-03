@@ -550,6 +550,10 @@ class SlideOne {
             data.currentIndex++;
             drawFunc(data);
         }
+        else if (data.loopSlide) {
+            data.currentIndex = 0;
+            drawFunc(data);
+        }
     }
 
     #onMouseMoveCallback(event, data, drawFunc) {
