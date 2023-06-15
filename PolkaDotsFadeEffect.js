@@ -4,7 +4,7 @@ class PolkaDotParameter {
     color = new SoLightColor8();
 }
 
-class PolkaDotsEffect {
+class PolkaDotsFadeEffect {
     numberOfDots = 20;
     dotParameters = [];
     draw(data) {

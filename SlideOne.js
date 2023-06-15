@@ -257,7 +257,6 @@ class SlideOne {
         data.source = slideOneSource;
         data.canvas = canvas;
         data.ctx = canvas.getContext("bitmaprenderer");
-        data.effect = new PolkaDotsEffect();
         data.canvas.addEventListener("mousemove", (event) => this.#onMouseMoveCallback(event, data, this.#drawCore));
         const funcDict = {};
 
