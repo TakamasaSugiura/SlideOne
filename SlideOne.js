@@ -13,7 +13,7 @@
 // limitations under the License.
 
 class SlideOneSource {
-    bg = "";
+    bg = undefined;
     slides = [];
 
     constructor(src) {
@@ -84,6 +84,7 @@ class SoData {
     canvas = null;
     ctx = null;
     bg = null;
+    ready = false;
     currentIndex = 0;
     mouseX = -1;
     mouseY = -1;
@@ -244,6 +245,7 @@ class SoDirection {
 class SlideOne {
     #slideOneData = new SoData();
     currentIndex = 0;
+    #funcDict = {};
 
     constructor(canvasSource, slideOneSource, onLoadCallback) {
         if (!(slideOneSource instanceof SlideOneSource)) {
@@ -258,7 +260,7 @@ class SlideOne {
         data.canvas = canvas;
         data.ctx = canvas.getContext("bitmaprenderer");
         data.canvas.addEventListener("mousemove", (event) => this.#onMouseMoveCallback(event, data, this.#drawCore));
-        const funcDict = {};
+        const funcDict = this.#funcDict;
 
         // funcs
         funcDict["loadBg"] = this.#loadBg;
@@ -267,8 +269,17 @@ class SlideOne {
 
         this.#slideOneData = data;
         
-        this.#loadBg(data, funcDict);
+        //this.#loadBg(data, funcDict);
         this.resize(window.innerWidth, window.innerHeight);
+    }
+
+    start() {
+        const data = this.#slideOneData;
+        if (data.ready) {
+            return;
+        }
+        const funcDict = this.#funcDict;
+        this.#loadBg(data, funcDict);
     }
 
 
@@ -398,10 +409,15 @@ class SlideOne {
 
     #loadBg(data, funcDict) {
         const source = data.source;
-        const bgImage = new Image();
-        bgImage.src = source.bg;
-        data.bg = bgImage;
-        bgImage.onload = () => funcDict["loadFg"](data, funcDict);
+        if (source.bg !== undefined) {
+            const bgImage = new Image();
+            bgImage.src = source.bg;
+            data.bg = bgImage;
+            bgImage.onload = () => funcDict["loadFg"](data, funcDict);
+        }
+        else {
+            funcDict["loadFg"](data, funcDict);
+        }
     }
 
     #loadFg(data, funcDict) {
@@ -467,6 +483,7 @@ class SlideOne {
                 loadingList[idx]["i"].onload = loadingFunc(idx + 1);
             }
             else {
+                data.ready = true;
                 const onLoadCallback = funcDict["onLoadCallback"];
                 if (onLoadCallback) {
                     onLoadCallback();
@@ -477,6 +494,9 @@ class SlideOne {
     }
     
     #drawCore(data) {
+        if (!data.ready) {
+            return;
+        }
         const canvasCtx = data.ctx;
         const bgImage = data.bg;
         const slide = data.slides[data.currentIndex];
@@ -484,7 +504,9 @@ class SlideOne {
         const defaultHeight = data.defaultHeight;
         const offScreenCanvas = new OffscreenCanvas(defaultWidth, defaultHeight);
         const offScreenCtx = offScreenCanvas.getContext("2d");
-        offScreenCtx.drawImage(bgImage, 0, 0, defaultWidth, defaultHeight);
+        if (bgImage !== null) {
+            offScreenCtx.drawImage(bgImage, 0, 0, defaultWidth, defaultHeight);
+        }
         const effectParameter = new SoEffectParameter(offScreenCtx, data);
         for (let effectIndex = 0; effectIndex < data.backgroundEffects.length; effectIndex++) {
             const effect = data.backgroundEffects[effectIndex];
