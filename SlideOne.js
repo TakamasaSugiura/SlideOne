@@ -248,10 +248,6 @@ class SlideOne {
     #funcDict = {};
 
     constructor(canvasSource, slideOneSource, onLoadCallback) {
-        if (!(slideOneSource instanceof SlideOneSource)) {
-            console.error("The Source is not SlideOneSource object.");
-            return;
-        }
         const canvas = this.#getCanvas(canvasSource);
         const data = new SoData();
         data.defaultWidth = canvas.width;
