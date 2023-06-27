@@ -249,6 +249,19 @@ class SlideOne {
 
     constructor(canvasSource, slideOneSource, onLoadCallback) {
         const canvas = this.#getCanvas(canvasSource);
+        let src = null;
+        if (slideOneSource instanceof Array)
+        {
+            src = new SlideOneSource();
+            src.slides = slideOneSource;
+        }
+        else {
+            src = slideOneSource;
+        }
+        this.#init(canvas, src, onLoadCallback);
+    }
+
+    #init(canvas, slideOneSource, onLoadCallback){
         const data = new SoData();
         data.defaultWidth = canvas.width;
         data.defaultHeight = canvas.height;
@@ -266,6 +279,10 @@ class SlideOne {
         this.#slideOneData = data;
         
         //this.#loadBg(data, funcDict);
+        this.enableMouseDownEvent();
+        this.enableLoopSlide();
+        this.showCursor();
+        this.enableFullWindowMode();
         this.resize(window.innerWidth, window.innerHeight);
     }
 
