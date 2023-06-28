@@ -15,6 +15,11 @@
 class SlideOneSource {
     bg = undefined;
     slides = [];
+    fullWindow = true;
+    enableMouse = true;
+    enableKey = true;
+    loop = true;
+    showCursor = true;
 
     constructor(src) {
         if (src !== undefined) {
@@ -268,7 +273,6 @@ class SlideOne {
         data.source = slideOneSource;
         data.canvas = canvas;
         data.ctx = canvas.getContext("bitmaprenderer");
-        data.canvas.addEventListener("mousemove", (event) => this.#onMouseMoveCallback(event, data, this.#drawCore));
         const funcDict = this.#funcDict;
 
         // funcs
@@ -279,11 +283,23 @@ class SlideOne {
         this.#slideOneData = data;
         
         //this.#loadBg(data, funcDict);
-        this.enableMouseDownEvent();
-        this.enableLoopSlide();
-        this.showCursor();
-        this.enableFullWindowMode();
-        this.resize(window.innerWidth, window.innerHeight);
+        if (slideOneSource.enableMouse !== false) {
+            this.#enableMouseDownEvent();
+        }
+        if (slideOneSource.enableKey !== false) {
+            this.#enableKeyDownEvent();
+        }
+        if (slideOneSource.loop !== false) {
+            this.#enableLoopSlide();
+        }
+        if (slideOneSource.showCursor !== false) {
+            data.canvas.addEventListener("mousemove", (event) => this.#onMouseMoveCallback(event, data, this.#drawCore));
+            this.#showCursor();
+        }
+        if (slideOneSource.fullWindow !== false) {
+            this.#enableFullWindowMode();
+            this.resize(window.innerWidth, window.innerHeight);
+        }
     }
 
     start() {
@@ -301,23 +317,34 @@ class SlideOne {
         this.#drawCore(data);
     }
 
-    drawNext() {
+    drawNext(loop) {
         const data = this.#slideOneData;
         const fgImageCount = data.slides.length;
+        if (loop === undefined) {
+            loop = data.loopSlide;
+        }
         if (data.currentIndex < fgImageCount - 1) {
             data.currentIndex++;
             this.draw();
         }
-        else if (data.loopSlide) {
+        else if (loop) {
             data.currentIndex = 0;
             this.draw();
         }
     }
 
-    drawPrev() {
+    drawPrev(loop) {
         const data = this.#slideOneData;
+        const fgImageCount = data.slides.length;
+        if (loop === undefined) {
+            loop = data.loopSlide;
+        }
         if (0 < data.currentIndex) {
             data.currentIndex--;
+            this.draw();
+        }
+        else if (loop) {
+            data.currentIndex = fgImageCount - 1;
             this.draw();
         }
     }
@@ -335,31 +362,30 @@ class SlideOne {
         data.ratio = actualWidth / defaultWidth;
     };
 
-    showCursor() {
+    #showCursor() {
         const data = this.#slideOneData;
         data.cursorVisible = true;
     }
 
-    hideCursor() {
-        const data = this.#slideOneData;
-        data.cursorVisible = false;
-    }
-
-    enableMouseDownEvent() {
+    #enableMouseDownEvent() {
         const data = this.#slideOneData;
         data.canvas.addEventListener("mousedown", (event) => this.#onMouseDownCallback(event, data, this.#drawCore));
     }
 
-    enableKeyDownEvent(target) {
+    #enableKeyDownEvent(target) {
         if (target === undefined) {
             target = window;
         }
         target.addEventListener("keydown", (event) => this.#onKeyDown(event, this))
     }
 
-    enableLoopSlide() {
+    #enableLoopSlide() {
         const data = this.#slideOneData;
         data.loopSlide = true;
+    }
+
+    #enableFullWindowMode() {
+        window.addEventListener('resize', () => this.resize(window.innerWidth, window.innerHeight), false);
     }
 
     enableAutoSlide() {
@@ -409,10 +435,6 @@ class SlideOne {
         this.#slideOneData.foregroundEffects.push(effect);
     }
 
-    enableFullWindowMode() {
-        window.addEventListener('resize', () => this.resize(window.innerWidth, window.innerHeight), false);
-    }
-
     #getCanvas(src) {
         if (typeof src === "string") {
             return document.getElementById(src);
@@ -457,8 +479,7 @@ class SlideOne {
                     else if (slide instanceof Array) {
                         layersSource = slide;
                     }
-                    for (let layerIndex = 0; layerIndex < layersSource.length; layerIndex++) {
-                        const layerSource = layersSource[layerIndex];
+                    for (const layerSource of layersSource) {
                         if (layerSource.image !== undefined) {
                             const imageLayerSource = new SoImageLayerSource(layerSource);
                             const layer = new SoImageLayer();
@@ -521,12 +542,10 @@ class SlideOne {
             offScreenCtx.drawImage(bgImage, 0, 0, defaultWidth, defaultHeight);
         }
         const effectParameter = new SoEffectParameter(offScreenCtx, data);
-        for (let effectIndex = 0; effectIndex < data.backgroundEffects.length; effectIndex++) {
-            const effect = data.backgroundEffects[effectIndex];
+        for (const effect of data.backgroundEffects) {
             effect.draw(effectParameter);
         }
-        for (let layerIndex = 0; layerIndex < slide.layers.length; layerIndex++) {
-            const layer = slide.layers[layerIndex];
+        for (const layer of slide.layers) {
             if (layer instanceof SoImageLayer) {
                 const width = layer.w < 0 ? layer.image.width : layer.w;
                 const height = layer.h < 0 ? layer.image.height : layer.h;
@@ -539,14 +558,14 @@ class SlideOne {
                 offScreenCtx.textAlign = layer.align;
                 let textY = layer.y;
                 let multiLine = layer.text.split("\n");
-                for (let lineCount = 0; lineCount < multiLine.length; lineCount ++) {
-                    offScreenCtx.fillText(multiLine[lineCount], layer.x, textY);
+                for (const line of multiLine) {
+                    offScreenCtx.fillText(line, layer.x, textY);
                     textY += layer.size;
                 }
             }
         }
-        for (let effectIndex = 0; effectIndex < data.foregroundEffects.length; effectIndex++) {
-            const effect = data.foregroundEffects[effectIndex];
+        for (const effect of data.foregroundEffects) 
+        {
             effect.draw(effectParameter);
         }
         if (data.cursorVisible) {
