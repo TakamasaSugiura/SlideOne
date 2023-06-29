@@ -2,7 +2,7 @@
 
 A slide show library for html/javascript
 
-# Constructor
+# The constructor
 
 ## SlideOne
 
@@ -11,18 +11,17 @@ A slide show library for html/javascript
 | canvas | A target canvas id or canvas element |
 | slideOneSource | Image sources. It could be an array of image names or an object described bellow |
 
-### slide One source
+### slideOneSource
 
 | property | description |
 |--|--|
 | bg | A back ground image file (optional) |
-| slides | Image names or slide objects |
+| slides | Image names or slide objects. |
 | fullWindow | Resize drawing area automatically. (optional, default = true) |
 | enableMouseDownEvent | (optional, default = true) |
 | enableKeyDownEvent | (optional, default = true) |
 | loop | (optional, default = true) |
-| showCursor | (optional, default = true) |
-
+| showCursor | Show a cursor. If it is true, a red circle follow your mouse cursor on drawing area. (optional, default = true) |
 
 # Methods
 
@@ -33,7 +32,6 @@ Start to load and draw images.
 | parameter | description |
 |--|--|
 | onLoadCallback | An callback function called after loading. (optional) |
-
 
 # Usage
 
