@@ -15,6 +15,11 @@
 class SlideOneSource {
     bg = undefined;
     slides = [];
+    fullWindow = true;
+    enableMouseDownEvent = true;
+    enableKeyDownEvent = true;
+    loop = true;
+    showCursor = true;
 
     constructor(src) {
         if (src !== undefined) {
@@ -138,20 +143,6 @@ class SoPoint {
     }
 }
 
-class SoSize {
-    w = 0;
-    h = 0;
-    
-    constructor (w, h) {
-        if (w !== undefined) {
-            this.w = w;
-        }
-        if (h !== undefined) {
-            this.h = h;
-        }
-    }
-}
-
 class SoRect {
     x = 0;
     y = 0;
@@ -171,31 +162,6 @@ class SoRect {
         if (h !== undefined) {
             this.h = h;
         }
-    }
-}
-
-class SoColor {
-    r = 0;
-    g = 0;
-    b = 0;
-    get rgbColorElementString() {
-        return this.r + "," + this.g + "," + this.b;
-    }
-}
-
-class SoLightColor8 {
-    colorNum = 0;
-    get r() {
-        return (this.colorNum & 0x04) > 0 ? 255 : 128;
-    }
-    get g() {
-        return (this.colorNum & 0x02) > 0 ? 255 : 128;
-    }
-    get b() {
-        return (this.colorNum & 0x01) > 0 ? 255 : 128;
-    }
-    get rgbColorElementString() {
-        return this.r + "," + this.g + "," + this.b;
     }
 }
 
@@ -225,56 +191,68 @@ class SoEffectParameter {
         this.#timerCount = soData.timerCount;
     }
 }
-class SoDirection {
-    name = "";
-    static TopLeft = new SoDirection("TopLeft");
-    static Top = new SoDirection("Top");
-    static TopRight = new SoDirection("TopRight");
-    static Left = new SoDirection("Left");
-    static Center = new SoDirection("Center");
-    static Right = new SoDirection("Right");
-    static BottomLeft = new SoDirection("BottomLeft");
-    static Bottom = new SoDirection("Bottom");
-    static BottomRight = new SoDirection("BottomRight");
-
-    constructor(name) {
-        this.name = name;
-    }
-}
 
 class SlideOne {
     #slideOneData = new SoData();
     currentIndex = 0;
     #funcDict = {};
 
-    constructor(canvasSource, slideOneSource, onLoadCallback) {
+    constructor(canvasSource, slideOneSource) {
         const canvas = this.#getCanvas(canvasSource);
+        let src = null;
+        if (slideOneSource instanceof Array)
+        {
+            src = new SlideOneSource();
+            src.slides = slideOneSource;
+        }
+        else {
+            src = slideOneSource;
+        }
+        this.#init(canvas, src);
+    }
+
+    #init(canvas, slideOneSource){
         const data = new SoData();
         data.defaultWidth = canvas.width;
         data.defaultHeight = canvas.height;
         data.source = slideOneSource;
         data.canvas = canvas;
         data.ctx = canvas.getContext("bitmaprenderer");
-        data.canvas.addEventListener("mousemove", (event) => this.#onMouseMoveCallback(event, data, this.#drawCore));
         const funcDict = this.#funcDict;
 
         // funcs
         funcDict["loadBg"] = this.#loadBg;
         funcDict["loadFg"] = this.#loadFg;
-        funcDict["onLoadCallback"] = onLoadCallback;
 
         this.#slideOneData = data;
         
         //this.#loadBg(data, funcDict);
-        this.resize(window.innerWidth, window.innerHeight);
+        if (slideOneSource.enableMouseDownEvent !== false) {
+            this.#enableMouseDownEvent();
+        }
+        if (slideOneSource.enableKeyDownEvent !== false) {
+            this.#enableKeyDownEvent();
+        }
+        if (slideOneSource.loop !== false) {
+            this.#enableLoopSlide();
+        }
+        if (slideOneSource.showCursor !== false) {
+            data.canvas.addEventListener("mousemove", (event) => this.#onMouseMoveCallback(event, data, this.#drawCore));
+            this.#showCursor();
+        }
+        if (slideOneSource.fullWindow !== false) {
+            this.#enableFullWindowMode();
+            this.resize(window.innerWidth, window.innerHeight);
+        }
     }
 
-    start() {
+    start(onLoadCallback) {
         const data = this.#slideOneData;
+        const funcDict = this.#funcDict;
+        funcDict["onLoadCallback"] = onLoadCallback;
         if (data.ready) {
             return;
         }
-        const funcDict = this.#funcDict;
         this.#loadBg(data, funcDict);
     }
 
@@ -284,23 +262,34 @@ class SlideOne {
         this.#drawCore(data);
     }
 
-    drawNext() {
+    drawNext(loop) {
         const data = this.#slideOneData;
         const fgImageCount = data.slides.length;
+        if (loop === undefined) {
+            loop = data.loopSlide;
+        }
         if (data.currentIndex < fgImageCount - 1) {
             data.currentIndex++;
             this.draw();
         }
-        else if (data.loopSlide) {
+        else if (loop) {
             data.currentIndex = 0;
             this.draw();
         }
     }
 
-    drawPrev() {
+    drawPrev(loop) {
         const data = this.#slideOneData;
+        const fgImageCount = data.slides.length;
+        if (loop === undefined) {
+            loop = data.loopSlide;
+        }
         if (0 < data.currentIndex) {
             data.currentIndex--;
+            this.draw();
+        }
+        else if (loop) {
+            data.currentIndex = fgImageCount - 1;
             this.draw();
         }
     }
@@ -318,44 +307,30 @@ class SlideOne {
         data.ratio = actualWidth / defaultWidth;
     };
 
-    showCursor() {
+    #showCursor() {
         const data = this.#slideOneData;
         data.cursorVisible = true;
     }
 
-    hideCursor() {
-        const data = this.#slideOneData;
-        data.cursorVisible = false;
-    }
-
-    enableMouseDownEvent() {
+    #enableMouseDownEvent() {
         const data = this.#slideOneData;
         data.canvas.addEventListener("mousedown", (event) => this.#onMouseDownCallback(event, data, this.#drawCore));
     }
 
-    enableKeyDownEvent(target) {
+    #enableKeyDownEvent(target) {
         if (target === undefined) {
             target = window;
         }
-        target.addEventListener("keydown", (event) => this.#onKeyDown(event, this))
+        target.addEventListener("keydown", (event) => this.#onKeyDown(event, this));
     }
 
-    enableLoopSlide() {
+    #enableLoopSlide() {
         const data = this.#slideOneData;
         data.loopSlide = true;
     }
 
-    enableAutoSlide() {
-        const data = this.#slideOneData;
-        data.autoSlide = true;
-    }
-
-    get autoSlideInterval () {
-        return this.#slideOneData.autoSlideInterval;
-    }
-
-    set autoSlideInterval (seconds) {
-        this.#slideOneData.autoSlideInterval = seconds * 10;
+    #enableFullWindowMode() {
+        window.addEventListener('resize', () => this.resize(window.innerWidth, window.innerHeight), false);
     }
 
     startTimer() {
@@ -390,10 +365,6 @@ class SlideOne {
 
     addForegroundEffect(effect) {
         this.#slideOneData.foregroundEffects.push(effect);
-    }
-
-    enableFullWindowMode() {
-        window.addEventListener('resize', () => this.resize(window.innerWidth, window.innerHeight), false);
     }
 
     #getCanvas(src) {
@@ -440,8 +411,7 @@ class SlideOne {
                     else if (slide instanceof Array) {
                         layersSource = slide;
                     }
-                    for (let layerIndex = 0; layerIndex < layersSource.length; layerIndex++) {
-                        const layerSource = layersSource[layerIndex];
+                    for (const layerSource of layersSource) {
                         if (layerSource.image !== undefined) {
                             const imageLayerSource = new SoImageLayerSource(layerSource);
                             const layer = new SoImageLayer();
@@ -504,12 +474,10 @@ class SlideOne {
             offScreenCtx.drawImage(bgImage, 0, 0, defaultWidth, defaultHeight);
         }
         const effectParameter = new SoEffectParameter(offScreenCtx, data);
-        for (let effectIndex = 0; effectIndex < data.backgroundEffects.length; effectIndex++) {
-            const effect = data.backgroundEffects[effectIndex];
+        for (const effect of data.backgroundEffects) {
             effect.draw(effectParameter);
         }
-        for (let layerIndex = 0; layerIndex < slide.layers.length; layerIndex++) {
-            const layer = slide.layers[layerIndex];
+        for (const layer of slide.layers) {
             if (layer instanceof SoImageLayer) {
                 const width = layer.w < 0 ? layer.image.width : layer.w;
                 const height = layer.h < 0 ? layer.image.height : layer.h;
@@ -522,14 +490,14 @@ class SlideOne {
                 offScreenCtx.textAlign = layer.align;
                 let textY = layer.y;
                 let multiLine = layer.text.split("\n");
-                for (let lineCount = 0; lineCount < multiLine.length; lineCount ++) {
-                    offScreenCtx.fillText(multiLine[lineCount], layer.x, textY);
+                for (const line of multiLine) {
+                    offScreenCtx.fillText(line, layer.x, textY);
                     textY += layer.size;
                 }
             }
         }
-        for (let effectIndex = 0; effectIndex < data.foregroundEffects.length; effectIndex++) {
-            const effect = data.foregroundEffects[effectIndex];
+        for (const effect of data.foregroundEffects) 
+        {
             effect.draw(effectParameter);
         }
         if (data.cursorVisible) {
@@ -555,11 +523,11 @@ class SlideOne {
             width = windowWidth;
             height = width * canvasRatio;
         }
-        return [width * 1, height * 1];
+        return [width, height];
     }
 
     #onMouseDownCallback(event, data, drawFunc){
-        if(event.buttons !== 1) {
+        if (event.buttons !== 1) {
             return;
         }
         const fgImageCount = data.slides.length;
@@ -587,5 +555,4 @@ class SlideOne {
             self.drawPrev();
         }
     }
-
 }

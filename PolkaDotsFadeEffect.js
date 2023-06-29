@@ -1,7 +1,24 @@
-class PolkaDotParameter {
+
+class PolkaDotsFadeEffectColor {
+    colorNum = 0;
+    get r() {
+        return (this.colorNum & 0x04) > 0 ? 255 : 128;
+    }
+    get g() {
+        return (this.colorNum & 0x02) > 0 ? 255 : 128;
+    }
+    get b() {
+        return (this.colorNum & 0x01) > 0 ? 255 : 128;
+    }
+    get rgbColorElementString() {
+        return this.r + "," + this.g + "," + this.b;
+    }
+}
+
+class PolkaDotsFadeEffectParameter {
     point = new SoPoint();
     radius = 0;
-    color = new SoLightColor8();
+    color = new PolkaDotsFadeEffectColor();
 }
 
 class PolkaDotsFadeEffect {
@@ -17,7 +34,7 @@ class PolkaDotsFadeEffect {
             // initialize
             this.dotParameters.length = 0;
             for (let index = 0; index < this.numberOfDots; index++) {
-                const dotParameter = new PolkaDotParameter();
+                const dotParameter = new PolkaDotsFadeEffectParameter();
                 dotParameter.point.x = this.getRndInteger(0, data.canvasRect.w);
                 dotParameter.point.y = this.getRndInteger(0, data.canvasRect.h);
                 dotParameter.radius = this.getRndInteger(20, 100);
