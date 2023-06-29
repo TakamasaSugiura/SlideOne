@@ -197,7 +197,7 @@ class SlideOne {
     currentIndex = 0;
     #funcDict = {};
 
-    constructor(canvasSource, slideOneSource, onLoadCallback) {
+    constructor(canvasSource, slideOneSource) {
         const canvas = this.#getCanvas(canvasSource);
         let src = null;
         if (slideOneSource instanceof Array)
@@ -208,10 +208,10 @@ class SlideOne {
         else {
             src = slideOneSource;
         }
-        this.#init(canvas, src, onLoadCallback);
+        this.#init(canvas, src);
     }
 
-    #init(canvas, slideOneSource, onLoadCallback){
+    #init(canvas, slideOneSource){
         const data = new SoData();
         data.defaultWidth = canvas.width;
         data.defaultHeight = canvas.height;
@@ -223,7 +223,6 @@ class SlideOne {
         // funcs
         funcDict["loadBg"] = this.#loadBg;
         funcDict["loadFg"] = this.#loadFg;
-        funcDict["onLoadCallback"] = onLoadCallback;
 
         this.#slideOneData = data;
         
@@ -247,12 +246,13 @@ class SlideOne {
         }
     }
 
-    start() {
+    start(onLoadCallback) {
         const data = this.#slideOneData;
+        const funcDict = this.#funcDict;
+        funcDict["onLoadCallback"] = onLoadCallback;
         if (data.ready) {
             return;
         }
-        const funcDict = this.#funcDict;
         this.#loadBg(data, funcDict);
     }
 
