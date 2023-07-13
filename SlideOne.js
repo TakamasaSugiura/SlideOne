@@ -34,7 +34,12 @@ class SoSlideSource {
 
     constructor(src) {
         if (src !== undefined) {
-            this.layers = src.layers === undefined ? this.layers : src.layers;
+            if (src instanceof Array) {
+                
+            }
+            else {
+                this.layers = src.layers === undefined ? this.layers : src.layers;
+            }
         }
     }
 }
@@ -206,7 +211,7 @@ class SlideOne {
             src.slides = slideOneSource;
         }
         else {
-            src = slideOneSource;
+            src = new SlideOneSource(slideOneSource);
         }
         this.#init(canvas, src);
     }
