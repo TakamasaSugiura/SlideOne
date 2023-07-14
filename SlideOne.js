@@ -55,7 +55,7 @@ class SoSlideSource {
     }
 
     #createLayerSource(src) {
-        if (src.t === undefined) {
+        if (src.t === undefined && src.text === undefined) {
             return new SoImageLayerSource(src);
         }
         else {
@@ -78,6 +78,7 @@ class SoImageLayerSource {
             }
             else {
                 this.image = src.image !== undefined ? src.image :
+                    src.img !== undefined ? src.img :
                     src.i !== undefined ? src.i : this.image;
                 this.x = src.x === undefined ? this.x : src.x;
                 this.y = src.y === undefined ? this.y : src.y;
@@ -437,28 +438,26 @@ class SlideOne {
                     }
                     for (const layerSource of layersSource) {
                         if (layerSource.image !== undefined) {
-                            const imageLayerSource = new SoImageLayerSource(layerSource);
                             const layer = new SoImageLayer();
                             const fgImage = new Image();
-                            loadingList.push({"i": fgImage, "f": imageLayerSource.image});
+                            loadingList.push({"i": fgImage, "f": layerSource.image});
                             layer.image = fgImage;
-                            layer.x = imageLayerSource.x;
-                            layer.y = imageLayerSource.y;
-                            layer.w = imageLayerSource.w;
-                            layer.h = imageLayerSource.h;
+                            layer.x = layerSource.x;
+                            layer.y = layerSource.y;
+                            layer.w = layerSource.w;
+                            layer.h = layerSource.h;
                             slideData.layers.push(layer);
                         }
                         else if(layerSource.text !== undefined) {
-                            const textLayerSource = new SoTextLayerSource(layerSource);
                             const layer = new SoTextLayer();
-                            layer.font = textLayerSource.size + "px " + textLayerSource.font;
-                            layer.size = textLayerSource.size;
-                            layer.style = textLayerSource.color;
-                            layer.text = textLayerSource.text;
-                            layer.align = textLayerSource.align;
-                            layer.baseline = textLayerSource.baseline;
-                            layer.x = textLayerSource.x;
-                            layer.y = textLayerSource.y;
+                            layer.font = layerSource.size + "px " + layerSource.font;
+                            layer.size = layerSource.size;
+                            layer.style = layerSource.color;
+                            layer.text = layerSource.text;
+                            layer.align = layerSource.align;
+                            layer.baseline = layerSource.baseline;
+                            layer.x = layerSource.x;
+                            layer.y = layerSource.y;
                             slideData.layers.push(layer);
                         }
                     }

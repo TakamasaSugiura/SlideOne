@@ -14,7 +14,7 @@
         <script src="../SlideOne.js"></script>
         <script>
             const canvas = document.getElementById("canvas");
-            const parameter = [{i: "images/1.jpg"}, {img: "images/2.jpg"}, {image: "images/3.jpg"}];
+            const parameter = [["images/1.jpg", "images/clubs.png"], ["images/2.jpg", {i:"images/spades.png", x:0, y:0}], "images/3.jpg", "images/4.jpg"];
             const slideOne = new SlideOne(canvas, parameter);
             slideOne.start();
         </script>
