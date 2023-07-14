@@ -22,9 +22,18 @@ class SlideOneSource {
     showCursor = true;
 
     constructor(src) {
-        if (src !== undefined) {
-            this.bg = src.bg === undefined ? this.bg : src.bg;
-            this.slides = src.slides === undefined ? this.slides : src.slides;
+        if (src instanceof Array) {
+            for (const elem of src) {
+                this.slides.push(new SoSlideSource(elem));
+            }
+        }
+        else {
+            this.bg = src.bg;
+            if (src !== undefined && src.slides instanceof Array) {
+                for (const elem of src.sllides) {
+                    this.slides.push(new SoSlideSource(elem));
+                }
+            }
         }
     }
 }
@@ -35,11 +44,22 @@ class SoSlideSource {
     constructor(src) {
         if (src !== undefined) {
             if (src instanceof Array) {
-                
+                for (const elem of src) {
+                    this.layers.push(this.#createLayerSource(elem));
+                }
             }
             else {
-                this.layers = src.layers === undefined ? this.layers : src.layers;
+                this.layers.push(this.#createLayerSource(src));
             }
+        }
+    }
+
+    #createLayerSource(src) {
+        if (src.t === undefined) {
+            return new SoImageLayerSource(src);
+        }
+        else {
+            return new SoTextLayerSource(src)
         }
     }
 }
@@ -53,11 +73,17 @@ class SoImageLayerSource {
 
     constructor(src) {
         if (src !== undefined) {
-            this.image = src.image === undefined ? this.image : src.image;
-            this.x = src.x === undefined ? this.x : src.x;
-            this.y = src.y === undefined ? this.y : src.y;
-            this.w = src.w === undefined ? this.w : src.w;
-            this.h = src.h === undefined ? this.h : src.h;
+            if (typeof src === "string") {
+                this.image = src;
+            }
+            else {
+                this.image = src.image !== undefined ? src.image :
+                    src.i !== undefined ? src.i : this.image;
+                this.x = src.x === undefined ? this.x : src.x;
+                this.y = src.y === undefined ? this.y : src.y;
+                this.w = src.w === undefined ? this.w : src.w;
+                this.h = src.h === undefined ? this.h : src.h;
+            }
         }
     }
 }
@@ -74,7 +100,8 @@ class SoTextLayerSource {
 
     constructor(src) {
         if (src !== undefined) {
-            this.text = src.text === undefined ? this.text : src.text;
+            this.text = src.text !== undefined ? src.text :
+                src.t !== undefined ? src.t : this.text;
             this.font = src.font === undefined ? this.font : src.font;
             this.size = src.size === undefined ? this.size : src.size;
             this.color = src.color === undefined ? this.color : src.color;
@@ -202,17 +229,9 @@ class SlideOne {
     currentIndex = 0;
     #funcDict = {};
 
-    constructor(canvasSource, slideOneSource) {
+    constructor(canvasSource, parameter) {
         const canvas = this.#getCanvas(canvasSource);
-        let src = null;
-        if (slideOneSource instanceof Array)
-        {
-            src = new SlideOneSource();
-            src.slides = slideOneSource;
-        }
-        else {
-            src = new SlideOneSource(slideOneSource);
-        }
+        const src = new SlideOneSource(parameter);
         this.#init(canvas, src);
     }
 
