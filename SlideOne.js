@@ -70,6 +70,7 @@ class SoImageLayerSource {
     y = 0;
     w = -1;
     h = -1;
+    anchor = "topleft";
 
     constructor(src) {
         if (src !== undefined) {
@@ -96,6 +97,7 @@ class SoTextLayerSource {
     color = "white";
     align = "start";
     baseline = "top";
+    anchor = "topleft";
     x = 0;
     y = 0;
 
@@ -358,6 +360,42 @@ class SlideOne {
         window.addEventListener('resize', () => this.resize(window.innerWidth, window.innerHeight), false);
     }
 
+    #setLayerPosition(dst, src, defaultWidth, defaultHeight) {
+        dst.x = src.x;
+        dst.y = src.y;
+        const w = src.w < 0 ? dst.image !== undefined ? dst.image.width : 0 : src.w;
+        const h = src.h < 0 ? dst.image !== undefined ? dst.image.height : 0 : src.h;
+        const anchor = src.anchor.toLowerCase();
+        if (anchor === "top") {
+            dst.x += (defaultWidth - w) / 2;
+        }
+        else if (anchor === "topright") {
+            dst.x += (defaultWidth - w);
+        }
+        else if (anchor === "left") {
+            dst.y += (defaultHeight - h) / 2;
+        }
+        else if (anchor === "center") {
+            dst.x += (defaultWidth - w) / 2;
+            dst.y += (defaultHeight - h) / 2;
+        }
+        else if (anchor === "right") {
+            dst.x += (defaultWidth - w);
+            dst.y += (defaultHeight - h) / 2;
+        }
+        else if (anchor === "bottomleft") {
+            dst.y += (defaultHeight - h);
+        }
+        else if (anchor === "bottom") {
+            dst.x += (defaultWidth - w) / 2;
+            dst.y += (defaultHeight - h);
+        }
+        else if (anchor === "bottomright") {
+            dst.x += (defaultWidth - w);
+            dst.y += (defaultHeight - h);
+        }
+    }
+
     startTimer() {
         setInterval(() => {
             const data = this.#slideOneData;
@@ -444,8 +482,8 @@ class SlideOne {
                             layer.image = fgImage;
                             layer.x = layerSource.x;
                             layer.y = layerSource.y;
-                            layer.w = layerSource.w;
-                            layer.h = layerSource.h;
+                            layer.w = layerSource.w < 0 ? layer.image.width : layerSource.w;
+                            layer.h = layerSource.h < 0 ? layer.image.height : layerSource.h;
                             slideData.layers.push(layer);
                         }
                         else if(layerSource.text !== undefined) {
