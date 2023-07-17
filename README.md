@@ -21,7 +21,7 @@ A slide show library for html/javascript
 | enableMouseDownEvent | (optional, default = true) |
 | enableKeyDownEvent | (optional, default = true) |
 | loop | (optional, default = true) |
-| showCursor | Show a cursor. If it is true, a red circle follow your mouse cursor on drawing area. (optional, default = true) |
+| showCursor | Show or hide the cursor. If it is true, a red circle follow your mouse cursor on drawing area. (optional, default = true) |
 
 ### slide object
 
@@ -32,7 +32,7 @@ A slide show library for html/javascript
 | y | y position. (optional, default = 0) |
 | w | width. (optional, default = -1) |
 | h | height. (optional, default = -1) |
-| anchor, a | anchor. (optional, default = topleft) |
+| anchor, a | Anchor. The possible values are "topleft", "top", "topright", "left", "center", "right", "bottomleft", "bottom", or "bottomright". (optional, default = "topleft") |
 
 # Methods
 
@@ -42,7 +42,7 @@ Start to load and draw images.
 
 | parameter | description |
 |--|--|
-| onLoadCallback | An callback function called after loading. (optional) |
+| onLoadCallback | A callback function called after loading. (optional) |
 
 # Usage
 
