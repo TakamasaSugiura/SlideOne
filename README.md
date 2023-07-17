@@ -23,6 +23,17 @@ A slide show library for html/javascript
 | loop | (optional, default = true) |
 | showCursor | Show a cursor. If it is true, a red circle follow your mouse cursor on drawing area. (optional, default = true) |
 
+### slide object
+
+| property | description |
+|--|--|
+| image, img, i | image file name. |
+| x | x position. (optional, default = 0) |
+| y | y position. (optional, default = 0) |
+| w | width. (optional, default = -1) |
+| h | height. (optional, default = -1) |
+| anchor, a | anchor. (optional, default = topleft) |
+
 # Methods
 
 ## Start

@@ -22,9 +22,18 @@ class SlideOneSource {
     showCursor = true;
 
     constructor(src) {
-        if (src !== undefined) {
-            this.bg = src.bg === undefined ? this.bg : src.bg;
-            this.slides = src.slides === undefined ? this.slides : src.slides;
+        if (src instanceof Array) {
+            for (const elem of src) {
+                this.slides.push(new SoSlideSource(elem));
+            }
+        }
+        else {
+            this.bg = src.bg;
+            if (src !== undefined && src.slides instanceof Array) {
+                for (const elem of src.sllides) {
+                    this.slides.push(new SoSlideSource(elem));
+                }
+            }
         }
     }
 }
@@ -35,11 +44,22 @@ class SoSlideSource {
     constructor(src) {
         if (src !== undefined) {
             if (src instanceof Array) {
-                
+                for (const elem of src) {
+                    this.layers.push(this.#createLayerSource(elem));
+                }
             }
             else {
-                this.layers = src.layers === undefined ? this.layers : src.layers;
+                this.layers.push(this.#createLayerSource(src));
             }
+        }
+    }
+
+    #createLayerSource(src) {
+        if (src.t === undefined && src.text === undefined) {
+            return new SoImageLayerSource(src);
+        }
+        else {
+            return new SoTextLayerSource(src)
         }
     }
 }
@@ -50,14 +70,24 @@ class SoImageLayerSource {
     y = 0;
     w = -1;
     h = -1;
+    anchor = "topleft";
 
     constructor(src) {
         if (src !== undefined) {
-            this.image = src.image === undefined ? this.image : src.image;
-            this.x = src.x === undefined ? this.x : src.x;
-            this.y = src.y === undefined ? this.y : src.y;
-            this.w = src.w === undefined ? this.w : src.w;
-            this.h = src.h === undefined ? this.h : src.h;
+            if (typeof src === "string") {
+                this.image = src;
+            }
+            else {
+                this.image = src.image !== undefined ? src.image :
+                    src.img !== undefined ? src.img :
+                    src.i !== undefined ? src.i : this.image;
+                this.x = src.x === undefined ? this.x : src.x;
+                this.y = src.y === undefined ? this.y : src.y;
+                this.w = src.w === undefined ? this.w : src.w;
+                this.h = src.h === undefined ? this.h : src.h;
+                this.anchor = src.anchor !== undefined ? src.anchor :
+                    src.a !== undefined ? src.a : this.anchor;
+            }
         }
     }
 }
@@ -69,12 +99,14 @@ class SoTextLayerSource {
     color = "white";
     align = "start";
     baseline = "top";
+    anchor = "topleft";
     x = 0;
     y = 0;
 
     constructor(src) {
         if (src !== undefined) {
-            this.text = src.text === undefined ? this.text : src.text;
+            this.text = src.text !== undefined ? src.text :
+                src.t !== undefined ? src.t : this.text;
             this.font = src.font === undefined ? this.font : src.font;
             this.size = src.size === undefined ? this.size : src.size;
             this.color = src.color === undefined ? this.color : src.color;
@@ -202,17 +234,9 @@ class SlideOne {
     currentIndex = 0;
     #funcDict = {};
 
-    constructor(canvasSource, slideOneSource) {
+    constructor(canvasSource, parameter) {
         const canvas = this.#getCanvas(canvasSource);
-        let src = null;
-        if (slideOneSource instanceof Array)
-        {
-            src = new SlideOneSource();
-            src.slides = slideOneSource;
-        }
-        else {
-            src = new SlideOneSource(slideOneSource);
-        }
+        const src = new SlideOneSource(parameter);
         this.#init(canvas, src);
     }
 
@@ -228,6 +252,7 @@ class SlideOne {
         // funcs
         funcDict["loadBg"] = this.#loadBg;
         funcDict["loadFg"] = this.#loadFg;
+        funcDict["setLayerPosition"] = this.#setLayerPosition;
 
         this.#slideOneData = data;
         
@@ -338,6 +363,40 @@ class SlideOne {
         window.addEventListener('resize', () => this.resize(window.innerWidth, window.innerHeight), false);
     }
 
+    #setLayerPosition(dst, defaultWidth, defaultHeight) {
+        const w = dst.w < 0 ? dst.image !== undefined ? dst.image.width : 0 : dst.w;
+        const h = dst.h < 0 ? dst.image !== undefined ? dst.image.height : 0 : dst.h;
+        const anchor = dst.anchor.toLowerCase();
+        if (anchor === "top") {
+            dst.x += (defaultWidth - w) / 2;
+        }
+        else if (anchor === "topright") {
+            dst.x += (defaultWidth - w);
+        }
+        else if (anchor === "left") {
+            dst.y += (defaultHeight - h) / 2;
+        }
+        else if (anchor === "center") {
+            dst.x += (defaultWidth - w) / 2;
+            dst.y += (defaultHeight - h) / 2;
+        }
+        else if (anchor === "right") {
+            dst.x += (defaultWidth - w);
+            dst.y += (defaultHeight - h) / 2;
+        }
+        else if (anchor === "bottomleft") {
+            dst.y += (defaultHeight - h);
+        }
+        else if (anchor === "bottom") {
+            dst.x += (defaultWidth - w) / 2;
+            dst.y += (defaultHeight - h);
+        }
+        else if (anchor === "bottomright") {
+            dst.x += (defaultWidth - w);
+            dst.y += (defaultHeight - h);
+        }
+    }
+
     startTimer() {
         setInterval(() => {
             const data = this.#slideOneData;
@@ -404,7 +463,7 @@ class SlideOne {
                 if (typeof slide === "string") { // TEXTの場合は、画像ファイルとして扱う
                     const layer = new SoImageLayer();
                     const fgImage = new Image();
-                    loadingList.push({"i": fgImage, "f": slide});
+                    loadingList.push({"i": fgImage, "f": slide, "l": layer});
                     layer.image = fgImage;
                     slideData.layers.push(layer);
                 }
@@ -418,28 +477,27 @@ class SlideOne {
                     }
                     for (const layerSource of layersSource) {
                         if (layerSource.image !== undefined) {
-                            const imageLayerSource = new SoImageLayerSource(layerSource);
                             const layer = new SoImageLayer();
                             const fgImage = new Image();
-                            loadingList.push({"i": fgImage, "f": imageLayerSource.image});
+                            loadingList.push({"i": fgImage, "f": layerSource.image, "l": layer});
                             layer.image = fgImage;
-                            layer.x = imageLayerSource.x;
-                            layer.y = imageLayerSource.y;
-                            layer.w = imageLayerSource.w;
-                            layer.h = imageLayerSource.h;
+                            layer.x = layerSource.x;
+                            layer.y = layerSource.y;
+                            layer.w = layerSource.w;
+                            layer.h = layerSource.h;
+                            layer.anchor = layerSource.anchor;
                             slideData.layers.push(layer);
                         }
                         else if(layerSource.text !== undefined) {
-                            const textLayerSource = new SoTextLayerSource(layerSource);
                             const layer = new SoTextLayer();
-                            layer.font = textLayerSource.size + "px " + textLayerSource.font;
-                            layer.size = textLayerSource.size;
-                            layer.style = textLayerSource.color;
-                            layer.text = textLayerSource.text;
-                            layer.align = textLayerSource.align;
-                            layer.baseline = textLayerSource.baseline;
-                            layer.x = textLayerSource.x;
-                            layer.y = textLayerSource.y;
+                            layer.font = layerSource.size + "px " + layerSource.font;
+                            layer.size = layerSource.size;
+                            layer.style = layerSource.color;
+                            layer.text = layerSource.text;
+                            layer.align = layerSource.align;
+                            layer.baseline = layerSource.baseline;
+                            layer.x = layerSource.x;
+                            layer.y = layerSource.y;
                             slideData.layers.push(layer);
                         }
                     }
@@ -448,10 +506,13 @@ class SlideOne {
             }
         }
 
-        const loadingFunc = (idx) => {
+        const loadingFunc = (idx, dat) => {
             if (idx < loadingList.length) {
                 loadingList[idx]["i"].src = loadingList[idx]["f"];
-                loadingList[idx]["i"].onload = loadingFunc(idx + 1);
+                loadingList[idx]["i"].onload = () => {
+                    funcDict["setLayerPosition"](loadingList[idx]["l"], dat.defaultWidth, dat.defaultHeight);
+                    loadingFunc(idx + 1, dat);
+                };
             }
             else {
                 data.ready = true;
@@ -461,7 +522,7 @@ class SlideOne {
                 }
             }
         }
-        loadingFunc(0);
+        loadingFunc(0, data);
     }
     
     #drawCore(data) {
