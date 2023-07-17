@@ -52,9 +52,29 @@ Start to load and draw images.
 <canvas id="canvas" width="1920" height="1080" style="display: block; margin: auto;  position: absolute; top:50%; left:50%; transform: translate(-50%, -50%);"></canvas>
 <script src="../SlideOne.js"></script>
 <script>
-    const _canvas = document.getElementById("canvas");
-    const _slide = new SlideOne(_canvas, ["images/1.jpg", "images/2.jpg", "images/3.jpg", "images/4.jpg"]);
-    _slide.start();
+    const canvas = document.getElementById("canvas");
+    const slide = new SlideOne(canvas, ["images/1.jpg", "images/2.jpg", "images/3.jpg", "images/4.jpg"]);
+    slide.start();
 </script>
 ```
 
+## Example2
+
+```html
+<canvas id="canvas" width="1920" height="1080" style="display: block; margin: auto;  position: absolute; top:50%; left:50%; transform: translate(-50%, -50%);"></canvas>
+<script src="../SlideOne.js"></script>
+<script>
+    const parameter = [
+        ["images/1.jpg", "images/clubs.png"],
+        ["images/2.jpg", {image:"images/spades.png", anchor:"topright"}],
+        ["images/3.jpg", {i:"images/diamonds.png", a:"bottomleft", x:100, y:-100}],
+        ["images/4.jpg", {i:"images/hearts.png", a:"bottomright"}]
+    ];
+    const slideOne = new SlideOne("canvas", parameter);
+    slideOne.start();
+</script>
+```
+
+![image1](doc/canvas1.jpg)
+
+![image2](doc/canvas2.jpg)

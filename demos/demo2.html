@@ -13,14 +13,13 @@
         <canvas id="canvas" width="1920" height="1080" style="display: block; margin: auto;  position: absolute; top:50%; left:50%; transform: translate(-50%, -50%);"></canvas>
         <script src="../SlideOne.js"></script>
         <script>
-            const canvas = document.getElementById("canvas");
             const parameter = [
                 ["images/1.jpg", "images/clubs.png"],
                 ["images/2.jpg", {image:"images/spades.png", anchor:"topright"}],
                 ["images/3.jpg", {i:"images/diamonds.png", a:"bottomleft", x:100, y:-100}],
                 ["images/4.jpg", {i:"images/hearts.png", a:"bottomright"}]
             ];
-            const slideOne = new SlideOne(canvas, parameter);
+            const slideOne = new SlideOne("canvas", parameter);
             slideOne.start();
         </script>
     </body>
