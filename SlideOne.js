@@ -85,6 +85,8 @@ class SoImageLayerSource {
                 this.y = src.y === undefined ? this.y : src.y;
                 this.w = src.w === undefined ? this.w : src.w;
                 this.h = src.h === undefined ? this.h : src.h;
+                this.anchor = src.anchor !== undefined ? src.anchor :
+                    src.a !== undefined ? src.a : this.anchor;
             }
         }
     }
@@ -250,6 +252,7 @@ class SlideOne {
         // funcs
         funcDict["loadBg"] = this.#loadBg;
         funcDict["loadFg"] = this.#loadFg;
+        funcDict["setLayerPosition"] = this.#setLayerPosition;
 
         this.#slideOneData = data;
         
@@ -360,12 +363,10 @@ class SlideOne {
         window.addEventListener('resize', () => this.resize(window.innerWidth, window.innerHeight), false);
     }
 
-    #setLayerPosition(dst, src, defaultWidth, defaultHeight) {
-        dst.x = src.x;
-        dst.y = src.y;
-        const w = src.w < 0 ? dst.image !== undefined ? dst.image.width : 0 : src.w;
-        const h = src.h < 0 ? dst.image !== undefined ? dst.image.height : 0 : src.h;
-        const anchor = src.anchor.toLowerCase();
+    #setLayerPosition(dst, defaultWidth, defaultHeight) {
+        const w = dst.w < 0 ? dst.image !== undefined ? dst.image.width : 0 : dst.w;
+        const h = dst.h < 0 ? dst.image !== undefined ? dst.image.height : 0 : dst.h;
+        const anchor = dst.anchor.toLowerCase();
         if (anchor === "top") {
             dst.x += (defaultWidth - w) / 2;
         }
@@ -462,7 +463,7 @@ class SlideOne {
                 if (typeof slide === "string") { // TEXTの場合は、画像ファイルとして扱う
                     const layer = new SoImageLayer();
                     const fgImage = new Image();
-                    loadingList.push({"i": fgImage, "f": slide});
+                    loadingList.push({"i": fgImage, "f": slide, "l": layer});
                     layer.image = fgImage;
                     slideData.layers.push(layer);
                 }
@@ -478,12 +479,13 @@ class SlideOne {
                         if (layerSource.image !== undefined) {
                             const layer = new SoImageLayer();
                             const fgImage = new Image();
-                            loadingList.push({"i": fgImage, "f": layerSource.image});
+                            loadingList.push({"i": fgImage, "f": layerSource.image, "l": layer});
                             layer.image = fgImage;
                             layer.x = layerSource.x;
                             layer.y = layerSource.y;
-                            layer.w = layerSource.w < 0 ? layer.image.width : layerSource.w;
-                            layer.h = layerSource.h < 0 ? layer.image.height : layerSource.h;
+                            layer.w = layerSource.w;
+                            layer.h = layerSource.h;
+                            layer.anchor = layerSource.anchor;
                             slideData.layers.push(layer);
                         }
                         else if(layerSource.text !== undefined) {
@@ -504,10 +506,13 @@ class SlideOne {
             }
         }
 
-        const loadingFunc = (idx) => {
+        const loadingFunc = (idx, dat) => {
             if (idx < loadingList.length) {
                 loadingList[idx]["i"].src = loadingList[idx]["f"];
-                loadingList[idx]["i"].onload = loadingFunc(idx + 1);
+                loadingList[idx]["i"].onload = () => {
+                    funcDict["setLayerPosition"](loadingList[idx]["l"], dat.defaultWidth, dat.defaultHeight);
+                    loadingFunc(idx + 1, dat);
+                };
             }
             else {
                 data.ready = true;
@@ -517,7 +522,7 @@ class SlideOne {
                 }
             }
         }
-        loadingFunc(0);
+        loadingFunc(0, data);
     }
     
     #drawCore(data) {
