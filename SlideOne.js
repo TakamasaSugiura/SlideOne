@@ -456,61 +456,58 @@ class SlideOne {
         const source = data.source;
         const fileCount = source.slides.length;
         const loadingList = [];
-        for (let index = 0; index < fileCount; index++) {
-            if (index < fileCount) {
-                const slide = source.slides[index];
-                const slideData = new SoSlideData();
-                if (typeof slide === "string") { // TEXTの場合は、画像ファイルとして扱う
-                    const layer = new SoImageLayer();
-                    const fgImage = new Image();
-                    loadingList.push({"i": fgImage, "f": slide, "l": layer});
-                    layer.image = fgImage;
-                    slideData.layers.push(layer);
-                }
-                else {
-                    let layersSource = [];
-                    if (slide.layers !== undefined) {
-                        layersSource = slide.layers;
-                    }
-                    else if (slide instanceof Array) {
-                        layersSource = slide;
-                    }
-                    for (const layerSource of layersSource) {
-                        if (layerSource.image !== undefined) {
-                            const layer = new SoImageLayer();
-                            const fgImage = new Image();
-                            loadingList.push({"i": fgImage, "f": layerSource.image, "l": layer});
-                            layer.image = fgImage;
-                            layer.x = layerSource.x;
-                            layer.y = layerSource.y;
-                            layer.w = layerSource.w;
-                            layer.h = layerSource.h;
-                            layer.anchor = layerSource.anchor;
-                            slideData.layers.push(layer);
-                        }
-                        else if(layerSource.text !== undefined) {
-                            const layer = new SoTextLayer();
-                            layer.font = layerSource.size + "px " + layerSource.font;
-                            layer.size = layerSource.size;
-                            layer.style = layerSource.color;
-                            layer.text = layerSource.text;
-                            layer.align = layerSource.align;
-                            layer.baseline = layerSource.baseline;
-                            layer.x = layerSource.x;
-                            layer.y = layerSource.y;
-                            slideData.layers.push(layer);
-                        }
-                    }
-                }
-                data.slides.push(slideData);
+        for (const slide of source.slides) {
+            const slideData = new SoSlideData();
+            if (typeof slide === "string") { // TEXTの場合は、画像ファイルとして扱う
+                const layer = new SoImageLayer();
+                const fgImage = new Image();
+                loadingList.push({image: fgImage, file: slide, layer: layer});
+                layer.image = fgImage;
+                slideData.layers.push(layer);
             }
+            else {
+                let layersSource = [];
+                if (slide.layers !== undefined) {
+                    layersSource = slide.layers;
+                }
+                else if (slide instanceof Array) {
+                    layersSource = slide;
+                }
+                for (const layerSource of layersSource) {
+                    if (layerSource.image !== undefined) {
+                        const layer = new SoImageLayer();
+                        const fgImage = new Image();
+                        loadingList.push({image: fgImage, file: layerSource.image, layer: layer});
+                        layer.image = fgImage;
+                        layer.x = layerSource.x;
+                        layer.y = layerSource.y;
+                        layer.w = layerSource.w;
+                        layer.h = layerSource.h;
+                        layer.anchor = layerSource.anchor;
+                        slideData.layers.push(layer);
+                    }
+                    else if(layerSource.text !== undefined) {
+                        const layer = new SoTextLayer();
+                        layer.font = layerSource.size + "px " + layerSource.font;
+                        layer.size = layerSource.size;
+                        layer.style = layerSource.color;
+                        layer.text = layerSource.text;
+                        layer.align = layerSource.align;
+                        layer.baseline = layerSource.baseline;
+                        layer.x = layerSource.x;
+                        layer.y = layerSource.y;
+                        slideData.layers.push(layer);
+                    }
+                }
+            }
+            data.slides.push(slideData);
         }
 
         const loadingFunc = (idx, dat) => {
             if (idx < loadingList.length) {
-                loadingList[idx]["i"].src = loadingList[idx]["f"];
-                loadingList[idx]["i"].onload = () => {
-                    funcDict["setLayerPosition"](loadingList[idx]["l"], dat.defaultWidth, dat.defaultHeight);
+                loadingList[idx].image.src = loadingList[idx].file;
+                loadingList[idx].image.onload = () => {
+                    funcDict["setLayerPosition"](loadingList[idx].layer, dat.defaultWidth, dat.defaultHeight);
                     loadingFunc(idx + 1, dat);
                 };
             }
